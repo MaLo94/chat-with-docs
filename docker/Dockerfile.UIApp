@@ -1,0 +1,8 @@
+FROM python:3.9.15 
+WORKDIR /var/streamlit_UI
+ADD ./streamlit_UI/requirements.txt /var/streamlit_UI/requirements.txt
+RUN pip install -r requirements.txt
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+ADD ./streamlit_UI /var/streamlit_UI
+EXPOSE 8501
+CMD streamlit run main.py
