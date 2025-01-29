@@ -23,7 +23,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: CommunerDBPass88446622
       MONGO_INITDB_DATABASE: root-db
     volumes:
-        - mongodb:/data/db
+        - ./mongodb:/data/db
     restart: always
 
   # gateway-api:
@@ -40,12 +40,16 @@ services:
   #       - mongodb
   #       - qdrant
   #   restart: always
+  
   ollama:
     image: ollama/ollama  # Use the official Ollama image
     container_name: ollama
     ports:
       - "11434:11434"
+    volumes:
+      - ./ollama_models:/root/.ollama  # Persist models across restarts
 
+    restart: always
       
 # ollama run llama3.2:1b
 
@@ -66,8 +70,12 @@ services:
         - ollama
         - mongodb
         - qdrant
+    volumes:
+      - ./streamlit_ui_data:/app
     restart: always
 
 volumes:
   qdrant_data:
   mongodb:
+  ollama_models:
+  streamlit_ui_data:
