@@ -1,7 +1,5 @@
 mongodb
 ollama_models
 qdrant_data
-qdrant_data/aliases
-qdrant_data/raft*
 streamlit_ui_data
 __pycache__
