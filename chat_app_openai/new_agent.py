@@ -5,7 +5,6 @@ from langchain_community.vectorstores import Qdrant
 from qdrant_client import QdrantClient
 from dotenv import load_dotenv
 
-
 # Load environment variables
 load_dotenv()
 
@@ -13,6 +12,7 @@ load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=api_key)
+
 class ChatbotManager:
     def __init__(self, 
                  openai_api_key: str,
@@ -25,10 +25,7 @@ class ChatbotManager:
         self.collection_name = collection_name
 
         self.embeddings = OpenAIEmbeddings(openai_api_key=self.openai_api_key)
-        # Initialize Qdrant client
-        self.client = QdrantClient(
-            url=self.qdrant_url, prefer_grpc=False
-        )
+        self.client = QdrantClient(url=self.qdrant_url, prefer_grpc=False)
 
         # Initialize the Qdrant vector store
         self.db = Qdrant(
@@ -38,20 +35,36 @@ class ChatbotManager:
         )
 
     def get_response(self, user_query: str) -> str:
+        # Retrieve relevant documents
         relevant_docs = self.db.similarity_search(user_query, k=3)
-        context = "\n".join([doc.page_content for doc in relevant_docs])
+        
+        if not relevant_docs:
+            return "I couldn't find relevant information in the uploaded documents."
+
+        # Construct the context with document references
+        context_sections = []
+        sources = set()  # To avoid duplicate document names
+        for doc in relevant_docs:
+            doc_text = doc.page_content.strip()
+            doc_source = doc.metadata.get("source", "Unknown Document")
+            context_sections.append(f"[From {doc_source}]: {doc_text}")
+            sources.add(doc_source)
+
+        context = "\n\n".join(context_sections)
+        source_info = ", ".join(sources)
 
         prompt = f"""
-        You are an intelligent assistant that provides answers based on the given documents.
-        If you don't know the answer, just say that you don't know, don't try to make up an answer.
+        You are an AI assistant that provides answers based on the provided documents.
+        If you don't know the answer, simply state that you don't know.
         
         Context:
         {context}
-        
+
         User Question:
         {user_query}
         
         Answer in a clear and concise manner.
+        At the end of the response, mention the source documents used: {source_info}
         """
 
         response = client.chat.completions.create(model=self.openai_model,
@@ -59,8 +72,12 @@ class ChatbotManager:
                   {"role": "user", "content": prompt}],
                   temperature=0.7,
                   stream=True)
-        
+
+        full_response = ""
         for chunk in response:
             if chunk.choices and chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
-        # return response.choices[0].message.content.strip()
+                full_response += chunk.choices[0].delta.content
+
+        # Append document references at the end
+        final_response = full_response + f"\n\n📄 Sources: {source_info}"
+        yield final_response
