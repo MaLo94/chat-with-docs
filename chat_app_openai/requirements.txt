@@ -1,0 +1,11 @@
+streamlit 
+langchain
+langchain_community
+langchain_core
+python-dotenv
+langchain-huggingface
+langchain-qdrant
+langchain-openai
+langchain-ollama
+qdrant-client
+pymupdf

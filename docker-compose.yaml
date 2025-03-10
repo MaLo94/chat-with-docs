@@ -53,29 +53,54 @@ services:
       
 # ollama run llama3.2:1b
 
-  streamlit-ui:
-    container_name: streamlit-ui
+  # streamlit-ui:
+  #   container_name: streamlit-ui
+  #   build:
+  #     context:    .
+  #     dockerfile: ./docker/Dockerfile.UIApp
+  #   environment:
+  #     - OLLAMA_HOST=http://ollama:11434
+  #   depends_on:
+  #     - ollama
+  #     - mongodb
+  #     - qdrant
+  #   ports:
+  #       - "8501:8501"
+  #   links:
+  #       - ollama
+  #       - mongodb
+  #       - qdrant
+  #   volumes:
+  #     - ./streamlit_ui_data:/app
+  #   restart: always
+
+
+  chat-app-openai:
+    container_name: chat-app-openai
     build:
       context:    .
-      dockerfile: ./docker/Dockerfile.UIApp
-    environment:
-      - OLLAMA_HOST=http://ollama:11434
+      dockerfile: ./docker/Dockerfile.UIApp_OpenAI
+    # environment:
+    #   - OLLAMA_HOST=http://ollama:11434
+    env_file:
+      - ./.env
     depends_on:
-      - ollama
+      # - ollama
       - mongodb
       - qdrant
     ports:
-        - "8501:8501"
+        - "8502:8502"
     links:
-        - ollama
+        # - ollama
         - mongodb
         - qdrant
     volumes:
-      - ./streamlit_ui_data:/app
+      - ./chat_app_openai_data:/app
     restart: always
 
 volumes:
   qdrant_data:
   mongodb:
   ollama_models:
-  streamlit_ui_data:
+  # streamlit_ui_data:
+  chat_app_openai_data:

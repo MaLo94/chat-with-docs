@@ -1,0 +1,10 @@
+FROM python:3.9.15 
+WORKDIR /var/chat_app_openai
+ADD ./chat_app_openai/requirements.txt /var/chat_app_openai/requirements.txt
+RUN pip install -r requirements.txt
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 curl -y
+ADD ./chat_app_openai /var/chat_app_openai
+EXPOSE 8502
+HEALTHCHECK CMD curl --fail http://localhost:8502/_stcore/health
+ENTRYPOINT ["streamlit", "run", "new_main.py", "--server.port=8502"]
+# CMD streamlit run new_main.py --server.port 8502

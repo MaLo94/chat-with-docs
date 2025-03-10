@@ -1,4 +1,5 @@
 mongodb
+.env
 ollama_models
 qdrant_data
 streamlit_ui_data
